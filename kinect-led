@@ -1,0 +1,49 @@
+#!/usr/bin/python
+
+import freenect
+import sys
+import argparse
+
+led = {
+           'off': freenect.LED_OFF,
+           'blink': freenect.LED_BLINK_GREEN,
+           'green': freenect.LED_GREEN,
+           'red': freenect.LED_RED,
+           'yellow': freenect.LED_YELLOW,
+           'blink_green': freenect.LED_BLINK_GREEN,
+           'blink_red_yellow': freenect.LED_BLINK_RED_YELLOW
+	   }
+
+parser = argparse.ArgumentParser(
+             description='Change Kinect LED color.')
+parser.add_argument("color", help="color for LED", choices=led.keys())
+
+args = parser.parse_args()
+
+ctx = freenect.init()
+num_dev = freenect.num_devices(ctx)
+
+if num_dev > 1:
+	num = False
+	print "%d devices found." % num_dev
+	while not num:
+		print
+		try:
+			num = int(raw_input("Select device: "))
+			if num < 1 or num > num_dev:
+				raise IndexError
+		except ValueError:
+			print "You should enter a number."
+		except IndexError:
+			print "Invalid device number."
+			num = False
+elif num_dev == 1:
+	num = 1
+else:
+	print "Device not found."
+	sys.exit(1)
+
+dev = freenect.open_device(ctx, num - 1)
+
+freenect.set_led(dev, led[args.color])
+freenect.close_device(dev)

@@ -1,0 +1,44 @@
+#!/usr/bin/python
+
+import freenect
+import sys
+import argparse
+
+parser = argparse.ArgumentParser(
+             description='Tilt Kinect LED by given angle.',
+             usage='%(prog)s angle')
+parser.add_argument("angle", type=int, help="angle to tilt", default=0)
+
+args = parser.parse_args()
+
+if args.angle not in range(-30, 30):
+	print "Kinect can only tilt from -30 to 30"
+	sys.exit()
+
+ctx = freenect.init()
+num_dev = freenect.num_devices(ctx)
+
+if num_dev > 1:
+	num = False
+	print "%d devices found." % num_dev
+	while not num:
+		print
+		try:
+			num = int(raw_input("Select device: "))
+			if num < 1 or num > num_dev:
+				raise IndexError
+		except ValueError:
+			print "You should enter a number."
+		except IndexError:
+			print "Invalid device number."
+			num = False
+elif num_dev == 1:
+	num = 1
+else:
+	print "Device not found."
+	sys.exit(1)
+
+dev = freenect.open_device(ctx, num - 1)
+
+freenect.set_tilt_degs(dev, args.angle)
+freenect.close_device(dev)
